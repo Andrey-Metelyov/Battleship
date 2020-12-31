@@ -47,17 +47,94 @@ public class BattleshipGame {
                 System.out.println("Error! You entered the wrong coordinates! Try again:");
                 continue;
             }
-            if (field[point.get().x][point.get().y].equals("O")) {
-                field[point.get().x][point.get().y] = "X";
+            int x = point.get().x;
+            int y = point.get().y;
+            if (field[x][y].equals("O")) {
+                field[x][y] = "X";
                 battleshipView.showFoggedField();
-                System.out.println("\nYou hit a ship!");
-            } else {
+                if (shipSanked(x, y)) {
+                    if (allShipsSanked()) {
+                        System.out.println("You sank the last ship. You won. Congratulations!");
+                        return;
+                    } else {
+                        System.out.println("\nYou sank a ship! Specify a new target:");
+                    }
+                } else {
+                    System.out.println("\nYou hit a ship!");
+                }
+            } else if (field[x][y].equals("~")) {
                 field[point.get().x][point.get().y] = "M";
                 battleshipView.showFoggedField();
                 System.out.println("\nYou missed!");
+            } else {
+                battleshipView.showFoggedField();
+                System.out.println("\nError. Already shot!");
             }
-            battleshipView.showField();
+//            battleshipView.showField();
         }
+    }
+
+    private boolean allShipsSanked() {
+        for (int i = 0; i < field.length; i++) {
+            for (int j = 0; j < field[i].length; j++) {
+                if (field[i][j].equals("O")) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean shipSanked(int x, int y) {
+        // go left
+        int curX = x - 1;
+        while (curX > 0) {
+            String cell = field[curX][y];
+            if (cell.equals("O")) {
+                return false;
+            }
+            if (cell.equals("M") || cell.equals("~")) {
+                break;
+            }
+            curX--;
+        }
+        // go right
+        curX = x + 1;
+        while (curX < 9) {
+            String cell = field[curX][y];
+            if (cell.equals("O")) {
+                return false;
+            }
+            if (cell.equals("M") || cell.equals("~")) {
+                break;
+            }
+            curX++;
+        }
+        // go up
+        int curY = y - 1;
+        while (curY > 0) {
+            String cell = field[x][curY];
+            if (cell.equals("O")) {
+                return false;
+            }
+            if (cell.equals("M") || cell.equals("~")) {
+                break;
+            }
+            curY--;
+        }
+        // go down
+        curY = y + 1;
+        while (curY < 9) {
+            String cell = field[x][curY];
+            if (cell.equals("O")) {
+                return false;
+            }
+            if (cell.equals("M") || cell.equals("~")) {
+                break;
+            }
+            curY++;
+        }
+        return true;
     }
 
     private Optional<Point> checkCoordinate(String coordinate) {
