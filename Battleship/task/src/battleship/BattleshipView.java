@@ -8,7 +8,10 @@ public class BattleshipView {
     }
 
     public void showField() {
-        String[][] field = battleshipGame.getField();
+        show(battleshipGame.getField(), false);
+    }
+
+    private void show(String[][] field, boolean fogged) {
         System.out.print(" ");
         for (int i = 0; i < field[0].length; i++) {
             System.out.print(" " + (i + 1));
@@ -18,9 +21,17 @@ public class BattleshipView {
         for (String[] rows : field) {
             System.out.print(currentRow++);
             for (String cell : rows) {
-                System.out.print(" " + cell);
+                if (fogged && cell.equals("O")) {
+                    System.out.print(" ~");
+                } else {
+                    System.out.print(" " + cell);
+                }
             }
             System.out.println();
         }
+    }
+
+    public void showFoggedField() {
+        show(battleshipGame.getField(), true);
     }
 }

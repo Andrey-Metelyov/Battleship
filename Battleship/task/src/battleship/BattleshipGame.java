@@ -34,7 +34,7 @@ public class BattleshipGame {
 
     private void startGame() {
         System.out.println("\nThe game starts!");
-        battleshipView.showField();
+        battleshipView.showFoggedField();
         takeShot();
     }
 
@@ -49,13 +49,14 @@ public class BattleshipGame {
             }
             if (field[point.get().x][point.get().y].equals("O")) {
                 field[point.get().x][point.get().y] = "X";
-                battleshipView.showField();
+                battleshipView.showFoggedField();
                 System.out.println("\nYou hit a ship!");
             } else {
                 field[point.get().x][point.get().y] = "M";
-                battleshipView.showField();
+                battleshipView.showFoggedField();
                 System.out.println("\nYou missed!");
             }
+            battleshipView.showField();
         }
     }
 
