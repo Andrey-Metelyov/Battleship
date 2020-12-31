@@ -7,7 +7,29 @@ import java.util.Scanner;
 public class BattleshipGame {
     private final BattleshipView battleshipView;
     private final String[][] field;
+    private final String[][] field2;
     private final Scanner scanner = new Scanner(System.in);
+
+    public final static void clearConsole()
+    {
+        try
+        {
+            final String os = System.getProperty("os.name");
+
+            if (os.contains("Windows"))
+            {
+                Runtime.getRuntime().exec("cls");
+            }
+            else
+            {
+                Runtime.getRuntime().exec("clear");
+            }
+        }
+        catch (final Exception e)
+        {
+            //  Handle any exceptions.
+        }
+    }
 
     class Point {
         int x;
@@ -21,26 +43,48 @@ public class BattleshipGame {
 
     public BattleshipGame() {
         this.battleshipView = new BattleshipView(this);
-        this.field = new String[10][10];
+        field = initField();
+        field2 = initField();
+        start();
+    }
+
+    private String[][] initField() {
+        final String[][] field;
+        field = new String[10][10];
         for (String[] strings : field) {
             Arrays.fill(strings, "~");
         }
+        return field;
     }
 
     public void start() {
-        placeShips();
+        System.out.println("Player 1, place your ships on the game field");
+        placeShips(field);
+        System.out.println("Press Enter and pass the move to another player");
+        scanner.nextLine();
+        System.out.println("...");
+        System.out.println("Player 2, place your ships to the game field");
+        placeShips(field2);
         startGame();
     }
 
     private void startGame() {
-        System.out.println("\nThe game starts!");
-        battleshipView.showFoggedField();
         takeShot();
     }
 
     private void takeShot() {
+        int currentPlayer = 1;
+        String[][] currentPlayerField = field;
+        String[][] otherPlayerField = field2;
         while (true) {
-            System.out.println("\nTake a shot!");
+            System.out.println("Press Enter and pass the move to another player");
+            scanner.nextLine();
+//            System.out.println("...");
+//            System.out.print("\033[H\033[2J");
+//            System.out.flush();
+//            clearConsole();
+            battleshipView.showFields(otherPlayerField, currentPlayerField);
+            System.out.println("\nPlayer " + currentPlayer + ", it's your turn:");
             String coordinate = scanner.nextLine();
             Optional<Point> point = checkCoordinate(coordinate);
             if (point.isEmpty()) {
@@ -49,11 +93,10 @@ public class BattleshipGame {
             }
             int x = point.get().x;
             int y = point.get().y;
-            if (field[x][y].equals("O")) {
-                field[x][y] = "X";
-                battleshipView.showFoggedField();
-                if (shipSanked(x, y)) {
-                    if (allShipsSanked()) {
+            if (otherPlayerField[x][y].equals("O")) {
+                otherPlayerField[x][y] = "X";
+                if (shipSanked(otherPlayerField, x, y)) {
+                    if (allShipsSanked(otherPlayerField)) {
                         System.out.println("You sank the last ship. You won. Congratulations!");
                         return;
                     } else {
@@ -62,19 +105,27 @@ public class BattleshipGame {
                 } else {
                     System.out.println("\nYou hit a ship!");
                 }
-            } else if (field[x][y].equals("~")) {
-                field[point.get().x][point.get().y] = "M";
-                battleshipView.showFoggedField();
+            } else if (otherPlayerField[x][y].equals("~")) {
+                otherPlayerField[x][y] = "M";
                 System.out.println("\nYou missed!");
             } else {
-                battleshipView.showFoggedField();
                 System.out.println("\nError. Already shot!");
             }
 //            battleshipView.showField();
+            battleshipView.showFields(otherPlayerField, currentPlayerField);
+            if (currentPlayer == 1) {
+                currentPlayer = 2;
+                currentPlayerField = field2;
+                otherPlayerField = field;
+            } else {
+                currentPlayer = 1;
+                currentPlayerField = field;
+                otherPlayerField = field2;
+            }
         }
     }
 
-    private boolean allShipsSanked() {
+    private boolean allShipsSanked(String[][] field) {
         for (int i = 0; i < field.length; i++) {
             for (int j = 0; j < field[i].length; j++) {
                 if (field[i][j].equals("O")) {
@@ -85,7 +136,7 @@ public class BattleshipGame {
         return true;
     }
 
-    private boolean shipSanked(int x, int y) {
+    private boolean shipSanked(String[][] field, int x, int y) {
         // go left
         int curX = x - 1;
         while (curX > 0) {
@@ -154,21 +205,21 @@ public class BattleshipGame {
         return Optional.of(new Point(x, y));
     }
 
-    private void placeShips() {
-        battleshipView.showField();
-        placeShip("Aircraft Carrier", 5);
-        battleshipView.showField();
-        placeShip("Battleship", 4);
-        battleshipView.showField();
-        placeShip("Submarine", 3);
-        battleshipView.showField();
-        placeShip("Cruiser", 3);
-        battleshipView.showField();
-        placeShip("Destroyer", 2);
-        battleshipView.showField();
+    private void placeShips(String[][] field) {
+        battleshipView.showField(field);
+        placeShip(field, "Aircraft Carrier", 5);
+        battleshipView.showField(field);
+        placeShip(field, "Battleship", 4);
+        battleshipView.showField(field);
+        placeShip(field, "Submarine", 3);
+        battleshipView.showField(field);
+        placeShip(field, "Cruiser", 3);
+        battleshipView.showField(field);
+        placeShip(field, "Destroyer", 2);
+        battleshipView.showField(field);
     }
 
-    private void placeShip(String shipName, int size) {
+    private void placeShip(String[][] field, String shipName, int size) {
         while (true) {
             System.out.println("\nEnter the coordinates of the " + shipName + " (" + size + " cells):");
             String[] coordinates = scanner.nextLine().split(" ");
@@ -196,8 +247,9 @@ public class BattleshipGame {
                 System.out.println("Error! Wrong length of the " + shipName + "! Try again:");
                 continue;
             }
-            if (!checkOtherShips(x1, y1, x2, y2)) {
+            if (!checkOtherShips(field, x1, y1, x2, y2)) {
                 System.out.println("Error! You placed it too close to another one. Try again:");
+//                battleshipView.showField(field);
                 continue;
             }
 
@@ -216,7 +268,7 @@ public class BattleshipGame {
         }
     }
 
-    private boolean checkOtherShips(int x1, int y1, int x2, int y2) {
+    private boolean checkOtherShips(String[][] field, int x1, int y1, int x2, int y2) {
         int startX = Math.max(0, Math.min(x1 - 1, x2 - 1));
         int startY = Math.max(0, Math.min(y1 - 1, y2 - 1));
         int endX = Math.min(9, Math.max(x1 + 1, x2 + 1));

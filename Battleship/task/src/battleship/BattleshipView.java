@@ -7,8 +7,8 @@ public class BattleshipView {
         this.battleshipGame = battleshipGame;
     }
 
-    public void showField() {
-        show(battleshipGame.getField(), false);
+    public void showField(String[][] field) {
+        show(field, false);
     }
 
     private void show(String[][] field, boolean fogged) {
@@ -31,7 +31,9 @@ public class BattleshipView {
         }
     }
 
-    public void showFoggedField() {
-        show(battleshipGame.getField(), true);
+    public void showFields(String[][] field, String[][] field2) {
+        show(field, true);
+        System.out.println("---------------------");
+        show(field2, false);
     }
 }
